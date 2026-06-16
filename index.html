@@ -61,15 +61,26 @@
         <div id="explosion-emoji" class="explosion-emoji">💥</div>
     </div>
 
-    <!-- 이름 입력 모달 -->
-    <div id="name-modal" class="modal-overlay hidden">
+    <!-- 시작 닉네임 입력 모달 (첫 진입 시) -->
+    <div id="start-modal" class="modal-overlay">
         <div class="modal">
-            <h3>🎉 클리어!</h3>
-            <p id="modal-result"></p>
-            <input type="text" id="name-input" maxlength="12" placeholder="이름 (최대 12자)" autocomplete="off">
+            <h3>💣 지뢰찾기</h3>
+            <p>사용할 닉네임을 입력하세요.<br>기록이 순위표에 이 이름으로 남습니다.</p>
+            <input type="text" id="start-name-input" maxlength="12" placeholder="닉네임 (최대 12자)" autocomplete="off">
             <div class="modal-buttons">
-                <button id="submit-score-btn" class="modal-btn primary">순위 등록</button>
-                <button id="skip-score-btn" class="modal-btn">건너뛰기</button>
+                <button id="start-confirm-btn" class="modal-btn primary">게임 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 결과 안내 모달 -->
+    <div id="result-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 id="result-title"></h3>
+            <p id="result-text"></p>
+            <div class="modal-buttons">
+                <button id="result-retry-btn" class="modal-btn primary">다시 하기</button>
+                <button id="result-close-btn" class="modal-btn">닫기</button>
             </div>
         </div>
     </div>

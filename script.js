@@ -30,11 +30,21 @@ const lbTabs = document.querySelectorAll(".lb-tab");
 const lbPeriodBtns = document.querySelectorAll(".lb-period");
 const lbListEl = document.getElementById("leaderboard-list");
 const lbModeEl = document.getElementById("leaderboard-mode");
-const nameModal = document.getElementById("name-modal");
-const modalResultEl = document.getElementById("modal-result");
-const nameInput = document.getElementById("name-input");
-const submitScoreBtn = document.getElementById("submit-score-btn");
-const skipScoreBtn = document.getElementById("skip-score-btn");
+
+// 시작 닉네임 모달 DOM
+const startModal = document.getElementById("start-modal");
+const startNameInput = document.getElementById("start-name-input");
+const startConfirmBtn = document.getElementById("start-confirm-btn");
+
+// 결과 안내 모달 DOM
+const resultModal = document.getElementById("result-modal");
+const resultTitle = document.getElementById("result-title");
+const resultText = document.getElementById("result-text");
+const resultRetryBtn = document.getElementById("result-retry-btn");
+const resultCloseBtn = document.getElementById("result-close-btn");
+
+// 플레이어 닉네임 (localStorage에 보관)
+let playerName = localStorage.getItem("minesweeper_nickname") || "";
 
 // 폭발 연출 DOM
 const explosionOverlay = document.getElementById("explosion-overlay");
@@ -279,15 +289,21 @@ function endGame(won) {
         playExplosion(); // 지뢰 밟음 → 폭발 연출
     }
 
-    setTimeout(() => {
+    // 승리/실패 모두 순위표에 자동 기록 후 결과 모달 표시
+    const elapsed = timer;
+    setTimeout(async () => {
+        await Leaderboard.submit(currentLevel, playerName || "AGENT", elapsed, won);
+        activateLbTab(currentLevel);
+
         if (won) {
-            // 승리 시 이름 입력 모달 표시 (순위 등록용)
-            modalResultEl.textContent = `${levelLabel(currentLevel)} · 클리어 시간 ${timer}초`;
-            nameInput.value = "";
-            nameModal.classList.remove("hidden");
-            nameInput.focus();
+            resultTitle.textContent = "🎉 클리어!";
+            resultText.textContent = `${levelLabel(currentLevel)} · 클리어 시간 ${elapsed}초 — 순위표에 등록되었습니다!`;
+        } else {
+            resultTitle.textContent = "💥 실패!";
+            resultText.textContent = `${levelLabel(currentLevel)} · ${elapsed}초 버팀 — 도전 기록이 순위표에 남았습니다.`;
         }
-    }, 100);
+        resultModal.classList.remove("hidden");
+    }, won ? 200 : 750);
 }
 
 // 지뢰 폭발 연출 (이미지 + 화면 번쩍 + 보드 흔들림)
@@ -356,13 +372,20 @@ async function renderLeaderboard(level, period) {
         lbListEl.innerHTML = `<li class="lb-empty">아직 기록이 없습니다.</li>`;
     } else {
         lbListEl.innerHTML = scores
-            .map((s) => {
+            .map((s, i) => {
                 // 텍스트 이스케이프 (XSS 방지)
                 const name = String(s.name)
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;");
-                return `<li><span class="lb-name">${name}</span><span class="lb-time">${formatTime(s.time)}</span></li>`;
+                // 1·2·3등 특별 캐릭터, 그 외 숫자
+                const rankIcon = ["👑", "🥈", "🥉"][i] || `<span class="lb-rank-num">${i + 1}</span>`;
+                // 성공/실패 표시
+                const mark = s.success
+                    ? `<span class="lb-result win">✔</span>`
+                    : `<span class="lb-result lose">💥</span>`;
+                const cls = s.success ? "" : " lose-row";
+                return `<li class="${cls}"><span class="lb-rank">${rankIcon}</span>${mark}<span class="lb-name">${name}</span><span class="lb-time">${formatTime(s.time)}</span></li>`;
             })
             .join("");
     }
@@ -396,19 +419,33 @@ function activateLbTab(level) {
     renderLeaderboard(level, lbViewPeriod);
 }
 
-// 점수 제출 처리
-async function handleSubmitScore() {
-    const name = nameInput.value.trim() || "AGENT";
-    nameModal.classList.add("hidden");
-    await Leaderboard.submit(currentLevel, name, timer);
-    activateLbTab(currentLevel);
+// ===== 시작 닉네임 모달 =====
+function confirmNickname() {
+    const name = startNameInput.value.trim().slice(0, 12) || "AGENT";
+    playerName = name;
+    localStorage.setItem("minesweeper_nickname", name);
+    startModal.classList.add("hidden");
 }
 
-submitScoreBtn.addEventListener("click", handleSubmitScore);
-skipScoreBtn.addEventListener("click", () => nameModal.classList.add("hidden"));
-nameInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleSubmitScore();
+startConfirmBtn.addEventListener("click", confirmNickname);
+startNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") confirmNickname();
 });
+
+// ===== 결과 모달 =====
+resultRetryBtn.addEventListener("click", () => {
+    resultModal.classList.add("hidden");
+    initGame(getActiveLevel());
+});
+resultCloseBtn.addEventListener("click", () => resultModal.classList.add("hidden"));
+
+// ===== 초기 실행 =====
+// 닉네임이 없으면 시작 모달 표시, 있으면 기존 값으로 바로 진행
+if (playerName) {
+    startModal.classList.add("hidden");
+} else {
+    startNameInput.focus();
+}
 
 // 게임 시작
 initGame("beginner");

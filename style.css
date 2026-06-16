@@ -264,11 +264,9 @@ h1 {
 
 .leaderboard-list {
     list-style: none;
-    counter-reset: rank;
 }
 
 .leaderboard-list li {
-    counter-increment: rank;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -279,17 +277,35 @@ h1 {
     font-size: 14px;
 }
 
-.leaderboard-list li::before {
-    content: counter(rank);
+/* 실패 기록은 살짝 어둡게 */
+.leaderboard-list li.lose-row {
+    background: #f0e3e3;
+    opacity: 0.92;
+}
+
+/* 순위 아이콘/번호 */
+.leaderboard-list .lb-rank {
+    min-width: 24px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.leaderboard-list .lb-rank-num {
     font-weight: bold;
     color: #2a5298;
-    min-width: 22px;
+    font-size: 14px;
+}
+
+/* 성공/실패 마크 */
+.leaderboard-list .lb-result {
+    font-size: 13px;
+    min-width: 16px;
     text-align: center;
 }
 
-.leaderboard-list li:nth-child(1)::before { content: "🥇"; }
-.leaderboard-list li:nth-child(2)::before { content: "🥈"; }
-.leaderboard-list li:nth-child(3)::before { content: "🥉"; }
+.leaderboard-list .lb-result.win {
+    color: #1a9c2e;
+}
 
 .leaderboard-list .lb-name {
     flex: 1;

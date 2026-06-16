@@ -52,6 +52,13 @@ function ttlFor(period) {
     return period === "weekly" ? DAY * 9 : DAY * 2;
 }
 
+// 순위 비교: 승리 기록을 위로(클리어 시간 빠른 순), 실패 기록은 아래로(오래 버틴 순)
+function compareScores(a, b) {
+    if (!!a.success !== !!b.success) return a.success ? -1 : 1;
+    if (a.success) return a.time - b.time; // 승리끼리: 빠를수록 상위
+    return b.time - a.time; // 실패끼리: 오래 버틸수록 상위
+}
+
 export default async function handler(req, res) {
     try {
         if (req.method === "GET") {
@@ -64,12 +71,12 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "POST") {
-            const { level, name, time } = req.body || {};
+            const { level, name, time, success } = req.body || {};
 
             if (!VALID_LEVELS.includes(level)) {
                 return res.status(400).json({ error: "유효하지 않은 난이도입니다." });
             }
-            if (typeof time !== "number" || !Number.isFinite(time) || time <= 0) {
+            if (typeof time !== "number" || !Number.isFinite(time) || time < 0) {
                 return res.status(400).json({ error: "유효하지 않은 기록입니다." });
             }
 
@@ -83,6 +90,7 @@ export default async function handler(req, res) {
             const entry = {
                 name: safeName,
                 time: Math.round(time),
+                success: success === true, // 클리어 여부
                 date: new Date().toISOString(),
             };
 
@@ -92,7 +100,7 @@ export default async function handler(req, res) {
                 const key = redisKey(level, period);
                 const scores = (await kv.get(key)) || [];
                 scores.push(entry);
-                scores.sort((a, b) => a.time - b.time); // 빠를수록 상위
+                scores.sort(compareScores); // 승리 우선, 시간 기준 정렬
                 const top = scores.slice(0, MAX_ENTRIES);
                 await kv.set(key, top, { ex: ttlFor(period) });
                 if (period === "daily") result = top;

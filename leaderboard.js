@@ -68,9 +68,16 @@ const Leaderboard = (() => {
         }
     }
 
+    // 순위 비교: 승리 우선(빠른 순), 실패는 아래(오래 버틴 순)
+    function compareScores(a, b) {
+        if (!!a.success !== !!b.success) return a.success ? -1 : 1;
+        if (a.success) return a.time - b.time;
+        return b.time - a.time;
+    }
+
     // localStorage 저장
     function saveLocal(level, period, scores) {
-        scores.sort((a, b) => a.time - b.time);
+        scores.sort(compareScores);
         const top = scores.slice(0, MAX_ENTRIES);
         try {
             localStorage.setItem(storageKey(level, period), JSON.stringify(top));
@@ -100,14 +107,14 @@ const Leaderboard = (() => {
         return getLocal(level, period);
     }
 
-    // 점수 제출 (일간·주간 모두 반영)
-    async function submit(level, name, time) {
+    // 점수 제출 (일간·주간 모두 반영, 성공/실패 포함)
+    async function submit(level, name, time, success) {
         if (useApi) {
             try {
                 const res = await fetch("/api/scores", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ level, name, time }),
+                    body: JSON.stringify({ level, name, time, success }),
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -119,7 +126,12 @@ const Leaderboard = (() => {
             }
         }
         // 로컬 폴백: 일간·주간 양쪽에 저장
-        const entry = { name, time: Math.round(time), date: new Date().toISOString() };
+        const entry = {
+            name,
+            time: Math.round(time),
+            success: success === true,
+            date: new Date().toISOString(),
+        };
         let daily = [];
         for (const period of ["daily", "weekly"]) {
             const scores = getLocal(level, period);

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지뢰찾기</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="layout">
+        <div class="game-container">
+            <h1>💣 지뢰찾기</h1>
+
+            <div class="controls">
+                <div class="difficulty-buttons">
+                    <button class="diff-btn active" data-level="beginner">초급</button>
+                    <button class="diff-btn" data-level="intermediate">중급</button>
+                    <button class="diff-btn" data-level="expert">고급</button>
+                    <button class="diff-btn hell" data-level="hell">🔥 지옥</button>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-icon">💣</span>
+                    <span id="mine-count">000</span>
+                </div>
+                <button id="reset-btn" class="reset-btn">😊</button>
+                <div class="status-item">
+                    <span class="status-icon">⏱️</span>
+                    <span id="timer">000</span>
+                </div>
+            </div>
+
+            <div id="board" class="board"></div>
+
+            <p class="hint">좌클릭: 열기 · 우클릭: 깃발 표시</p>
+        </div>
+
+        <!-- 순위표 패널 -->
+        <div class="leaderboard-panel">
+            <h2>🏆 순위표</h2>
+            <div class="leaderboard-tabs">
+                <button class="lb-tab active" data-level="beginner">초급</button>
+                <button class="lb-tab" data-level="intermediate">중급</button>
+                <button class="lb-tab" data-level="expert">고급</button>
+                <button class="lb-tab hell" data-level="hell">🔥</button>
+            </div>
+            <ol id="leaderboard-list" class="leaderboard-list"></ol>
+            <p id="leaderboard-mode" class="leaderboard-mode"></p>
+        </div>
+    </div>
+
+    <!-- 이름 입력 모달 -->
+    <div id="name-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3>🎉 클리어!</h3>
+            <p id="modal-result"></p>
+            <input type="text" id="name-input" maxlength="12" placeholder="이름 (최대 12자)" autocomplete="off">
+            <div class="modal-buttons">
+                <button id="submit-score-btn" class="modal-btn primary">순위 등록</button>
+                <button id="skip-score-btn" class="modal-btn">건너뛰기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="leaderboard.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

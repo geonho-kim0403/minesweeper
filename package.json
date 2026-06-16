@@ -1,0 +1,9 @@
+{
+    "name": "minesweeper-leaderboard",
+    "version": "1.0.0",
+    "private": true,
+    "description": "지뢰찾기 웹 게임 + 공유 순위표",
+    "dependencies": {
+        "@vercel/kv": "^3.0.0"
+    }
+}

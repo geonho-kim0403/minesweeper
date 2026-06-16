@@ -27,6 +27,7 @@ const diffButtons = document.querySelectorAll(".diff-btn");
 
 // 순위표 관련 DOM
 const lbTabs = document.querySelectorAll(".lb-tab");
+const lbPeriodBtns = document.querySelectorAll(".lb-period");
 const lbListEl = document.getElementById("leaderboard-list");
 const lbModeEl = document.getElementById("leaderboard-mode");
 const nameModal = document.getElementById("name-modal");
@@ -35,9 +36,21 @@ const nameInput = document.getElementById("name-input");
 const submitScoreBtn = document.getElementById("submit-score-btn");
 const skipScoreBtn = document.getElementById("skip-score-btn");
 
-// 현재 게임 난이도 / 순위표에서 보고 있는 난이도
+// 폭발 연출 DOM
+const explosionOverlay = document.getElementById("explosion-overlay");
+const explosionImg = document.getElementById("explosion-img");
+const explosionEmoji = document.getElementById("explosion-emoji");
+
+// 폭발 이미지 파일이 없으면 이모지 폴백으로 대체
+explosionImg.addEventListener("error", () => {
+    explosionImg.style.display = "none";
+    explosionEmoji.style.display = "block";
+});
+
+// 현재 게임 난이도 / 순위표에서 보고 있는 난이도·기간
 let currentLevel = "beginner";
 let lbViewLevel = "beginner";
+let lbViewPeriod = "daily";
 
 // 숫자를 3자리 문자열로 변환
 function pad(num) {
@@ -262,6 +275,10 @@ function endGame(won) {
     }
     renderBoard();
 
+    if (!won) {
+        playExplosion(); // 지뢰 밟음 → 폭발 연출
+    }
+
     setTimeout(() => {
         if (won) {
             // 승리 시 이름 입력 모달 표시 (순위 등록용)
@@ -269,10 +286,27 @@ function endGame(won) {
             nameInput.value = "";
             nameModal.classList.remove("hidden");
             nameInput.focus();
-        } else {
-            alert("💥 지뢰를 밟았습니다! 다시 도전하세요.");
         }
     }, 100);
+}
+
+// 지뢰 폭발 연출 (이미지 + 화면 번쩍 + 보드 흔들림)
+function playExplosion() {
+    // 보드 흔들림
+    boardEl.classList.remove("shake");
+    void boardEl.offsetWidth; // 애니메이션 재시작 트릭
+    boardEl.classList.add("shake");
+
+    // 폭발 오버레이 표시
+    explosionOverlay.classList.remove("hidden");
+    // 애니메이션 재시작을 위해 강제 리플로우
+    void explosionOverlay.offsetWidth;
+
+    // 약 0.7초 뒤 오버레이 숨김
+    setTimeout(() => {
+        explosionOverlay.classList.add("hidden");
+        boardEl.classList.remove("shake");
+    }, 700);
 }
 
 // 난이도 한글 라벨
@@ -311,11 +345,12 @@ function formatTime(sec) {
 }
 
 // 순위 목록 렌더링
-async function renderLeaderboard(level) {
+async function renderLeaderboard(level, period) {
     lbViewLevel = level;
+    lbViewPeriod = period;
     lbListEl.innerHTML = `<li class="lb-empty">불러오는 중...</li>`;
 
-    const scores = await Leaderboard.fetch(level);
+    const scores = await Leaderboard.fetch(level, period);
 
     if (!scores.length) {
         lbListEl.innerHTML = `<li class="lb-empty">아직 기록이 없습니다.</li>`;
@@ -332,24 +367,33 @@ async function renderLeaderboard(level) {
             .join("");
     }
 
-    lbModeEl.textContent = Leaderboard.isShared()
-        ? "🌐 모두가 공유하는 순위표"
-        : "💾 이 브라우저에만 저장됨";
+    const periodLabel = period === "weekly" ? "주간(매주 초기화)" : "일간(매일 초기화)";
+    lbModeEl.textContent =
+        (Leaderboard.isShared() ? "🌐 모두가 공유 · " : "💾 이 브라우저 저장 · ") + periodLabel;
 }
 
-// 순위표 탭 전환
+// 순위표 난이도 탭 전환
 lbTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
         lbTabs.forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
-        renderLeaderboard(tab.dataset.level);
+        renderLeaderboard(tab.dataset.level, lbViewPeriod);
+    });
+});
+
+// 순위표 기간(일간/주간) 전환
+lbPeriodBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        lbPeriodBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderLeaderboard(lbViewLevel, btn.dataset.period);
     });
 });
 
 // 순위표 탭을 특정 난이도로 활성화
 function activateLbTab(level) {
     lbTabs.forEach((t) => t.classList.toggle("active", t.dataset.level === level));
-    renderLeaderboard(level);
+    renderLeaderboard(level, lbViewPeriod);
 }
 
 // 점수 제출 처리
@@ -368,4 +412,4 @@ nameInput.addEventListener("keydown", (e) => {
 
 // 게임 시작
 initGame("beginner");
-renderLeaderboard("beginner");
+renderLeaderboard("beginner", "daily");

@@ -46,9 +46,19 @@
                 <button class="lb-tab" data-level="expert">고급</button>
                 <button class="lb-tab hell" data-level="hell">🔥</button>
             </div>
+            <div class="leaderboard-periods">
+                <button class="lb-period active" data-period="daily">일간</button>
+                <button class="lb-period" data-period="weekly">주간</button>
+            </div>
             <ol id="leaderboard-list" class="leaderboard-list"></ol>
             <p id="leaderboard-mode" class="leaderboard-mode"></p>
         </div>
+    </div>
+
+    <!-- 지뢰 폭발 연출 오버레이 -->
+    <div id="explosion-overlay" class="explosion-overlay hidden">
+        <img id="explosion-img" src="images/explosion.gif" alt="펑!">
+        <div id="explosion-emoji" class="explosion-emoji">💥</div>
     </div>
 
     <!-- 이름 입력 모달 -->

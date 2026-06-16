@@ -91,6 +91,31 @@ h1 {
     border-color: #5a0000;
 }
 
+/* 일간/주간 기간 토글 */
+.leaderboard-periods {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.lb-period {
+    flex: 1;
+    padding: 5px 4px;
+    border: 2px solid #9b9b9b;
+    background: #ececec;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    color: #444;
+}
+
+.lb-period.active {
+    background: #2a5298;
+    color: #fff;
+    border-color: #1e3c72;
+}
+
 .status-bar {
     display: flex;
     justify-content: space-between;
@@ -372,4 +397,63 @@ h1 {
 
 .modal-btn:hover {
     opacity: 0.9;
+}
+
+/* 지뢰 폭발 연출 오버레이 */
+.explosion-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0);
+    animation: explosion-flash 0.5s ease-out;
+}
+
+.explosion-overlay.hidden {
+    display: none;
+}
+
+/* 폭발 이미지 (images/explosion.gif 가 있으면 사용) */
+#explosion-img {
+    max-width: 60vw;
+    max-height: 60vh;
+    animation: explosion-pop 0.6s ease-out;
+}
+
+/* 이미지가 없을 때 표시되는 이모지 폴백 */
+.explosion-emoji {
+    display: none;
+    font-size: 160px;
+    animation: explosion-pop 0.6s ease-out;
+    filter: drop-shadow(0 0 30px rgba(255, 120, 0, 0.9));
+}
+
+/* 화면 번쩍임 */
+@keyframes explosion-flash {
+    0% { background: rgba(255, 200, 0, 0.55); }
+    100% { background: rgba(0, 0, 0, 0); }
+}
+
+/* 펑 터지는 확대 효과 */
+@keyframes explosion-pop {
+    0% { transform: scale(0.2); opacity: 0; }
+    40% { transform: scale(1.25); opacity: 1; }
+    70% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.05); opacity: 0; }
+}
+
+/* 보드 흔들림 효과 */
+@keyframes board-shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 4px); }
+    40% { transform: translate(6px, -4px); }
+    60% { transform: translate(-5px, -3px); }
+    80% { transform: translate(5px, 3px); }
+}
+
+.board.shake {
+    animation: board-shake 0.4s ease;
 }
